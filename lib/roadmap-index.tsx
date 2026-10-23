@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { getAllRoadmaps } from "./mdx";
+import type { Roadmap } from "./mdx";
 import type { CSSProperties } from "react";
 
 type RoadmapIndexProps = {
   title: string;
   description: string;
+  roadmaps: Roadmap[];
 };
 
-export async function RoadmapIndex({ title, description }: RoadmapIndexProps) {
-  const roadmaps = await getAllRoadmaps();
+export function RoadmapIndex({ title, description, roadmaps }: RoadmapIndexProps) {
 
   return (
     <main className="edition-shell">

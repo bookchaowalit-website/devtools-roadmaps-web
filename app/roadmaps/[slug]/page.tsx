@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRoadmapBySlug, getAllRoadmaps } from "@/lib/mdx";
+import { Markdown } from "@/lib/markdown";
 import type { CSSProperties } from "react";
+
+// Every roadmap is prebuilt; any other slug is a 404 without touching the file system.
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const roadmaps = await getAllRoadmaps();
@@ -47,6 +51,12 @@ export default async function RoadmapPage({ params }: { params: Promise<{ slug: 
               </span>
             </div>
           </div>
+
+          {roadmap.content && (
+            <div className="edition-detail-body">
+              <Markdown source={roadmap.content} />
+            </div>
+          )}
 
           <section className="edition-prerequisites" aria-labelledby="prerequisites-title">
             <h2 id="prerequisites-title">Before this route</h2>

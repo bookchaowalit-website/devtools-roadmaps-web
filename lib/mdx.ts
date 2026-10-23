@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
-import matter from 'gray-matter';
+import fs from "fs/promises";
+import path from "path";
+import matter from "gray-matter";
 
 export interface RoadmapStage {
   name: string;
@@ -19,50 +19,59 @@ export interface Roadmap {
   content: string;
 }
 
-export async function getAllRoadmaps() {
-  const contentDir = path.join(process.cwd(), 'content', 'roadmaps');
-  const files = await fs.readdir(contentDir);
-  const mdxFiles = files.filter(file => file.endsWith('.mdx'));
+const CONTENT_DIR = path.join(process.cwd(), "content", "roadmaps");
 
-  const roadmaps = await Promise.all(
-    mdxFiles.map(async (file) => {
-      const filePath = path.join(contentDir, file);
-      const fileContent = await fs.readFile(filePath, 'utf8');
-      const { data, content } = matter(fileContent);
-
-      return {
-        ...data,
-        slug: file.replace('.mdx', ''),
-        content
-      } as Roadmap;
-    })
-  );
-
-  return roadmaps.sort((a, b) => {
-    const progressA = parseInt(a.progress) || 0;
-    const progressB = parseInt(b.progress) || 0;
-    return progressB - progressA;
-  });
+// Slugs come from the URL and from MCP arguments: allow only file-name-safe ids so a
+// request can never read outside content/roadmaps.
+export function isValidSlug(slug: unknown): slug is string {
+  return typeof slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
-export async function getRoadmapBySlug(slug: string) {
-  try {
-    const contentDir = path.join(process.cwd(), 'content', 'roadmaps');
-    const filePath = path.join(contentDir, `${slug}.mdx`);
-    const fileContent = await fs.readFile(filePath, 'utf8');
-    const { data, content } = matter(fileContent);
+function parseRoadmap(slug: string, source: string): Roadmap {
+  const { data, content } = matter(source);
+  return {
+    title: String(data.title ?? slug),
+    category: String(data.category ?? ""),
+    progress: String(data.progress ?? "0"),
+    difficulty: String(data.difficulty ?? ""),
+    estimated_time: String(data.estimated_time ?? ""),
+    prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites.map(String) : [],
+    stages: Array.isArray(data.stages)
+      ? data.stages.map((stage: { name?: unknown; items?: unknown }) => ({
+          name: String(stage.name ?? ""),
+          items: Array.isArray(stage.items) ? stage.items.map(String) : [],
+        }))
+      : [],
+    slug,
+    content: content.trim(),
+  };
+}
 
-    return {
-      ...data,
-      slug,
-      content: content
-    } as Roadmap;
+export async function getAllRoadmaps(): Promise<Roadmap[]> {
+  const files = (await fs.readdir(CONTENT_DIR)).filter((file) => file.endsWith(".mdx"));
+  const roadmaps = await Promise.all(
+    files.map(async (file) => parseRoadmap(file.replace(/\.mdx$/, ""), await fs.readFile(path.join(CONTENT_DIR, file), "utf8"))),
+  );
+  return roadmaps.sort((a, b) => (parseInt(b.progress) || 0) - (parseInt(a.progress) || 0));
+}
+
+export async function getRoadmapBySlug(slug: string): Promise<Roadmap | null> {
+  if (!isValidSlug(slug)) return null;
+  try {
+    return parseRoadmap(slug, await fs.readFile(path.join(CONTENT_DIR, `${slug}.mdx`), "utf8"));
   } catch (error) {
-    return null;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
   }
 }
 
-export async function getRoadmapsByCategory(category: string) {
-  const allRoadmaps = await getAllRoadmaps();
-  return allRoadmaps.filter(roadmap => roadmap.category === category);
+export function searchRoadmaps(roadmaps: Roadmap[], query: string): Roadmap[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return roadmaps;
+  return roadmaps.filter((roadmap) =>
+    [roadmap.title, roadmap.category, roadmap.difficulty, ...roadmap.prerequisites, ...roadmap.stages.flatMap((s) => [s.name, ...s.items])]
+      .join(" ")
+      .toLowerCase()
+      .includes(needle),
+  );
 }

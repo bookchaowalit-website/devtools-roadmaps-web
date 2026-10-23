@@ -53,6 +53,10 @@ a:focus-visible { outline: 2px solid var(--rail); outline-offset: 4px; }
 .edition-detail-meta { margin-top: 24px; }
 .edition-detail-progress { display: grid; gap: 11px; color: var(--rail); font-family: var(--font-geist-mono), monospace; font-size: 10px; }
 .edition-detail-progress strong { color: var(--ink); font-size: 45px; font-weight: 400; letter-spacing: -0.08em; }
+.edition-detail-body { max-width: 68ch; padding: 22px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 16px; line-height: 1.65; }
+.edition-detail-body p { margin: 0 0 10px; }
+.edition-detail-body p:last-child { margin-bottom: 0; }
+.edition-detail-body em { color: var(--quiet); font-family: var(--font-geist-mono), monospace; font-size: 12px; font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; }
 .edition-prerequisites { padding: 24px 0; border-bottom: 1px solid var(--line); }
 .edition-prerequisites h2 { margin: 0 0 15px; color: var(--quiet); font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
 .edition-prerequisites > div { display: flex; flex-wrap: wrap; gap: 10px 18px; color: var(--ink); font-size: 14px; }

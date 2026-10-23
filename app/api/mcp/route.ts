@@ -1,187 +1,67 @@
-import { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import { getAllRoadmaps, getRoadmapBySlug, searchRoadmaps } from "@/lib/mdx";
 
-export const runtime = 'edge';
+// Stateless JSON-RPC MCP endpoint over the same authored roadmaps the pages show (content/roadmaps).
 
-interface MCPRequest {
-  jsonrpc: '2.0';
-  id: number | string;
-  method: string;
-  params?: any;
+type RpcRequest = { id?: number | string | null; method?: string; params?: { name?: string; arguments?: Record<string, unknown> } };
+
+const TOOLS = [
+  { name: "get_all", description: "List every authored roadmap with its stages", inputSchema: { type: "object", properties: {} } },
+  { name: "get_by_slug", description: "Get one roadmap by slug", inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] } },
+  { name: "search", description: "Search titles, categories, prerequisites and stage items", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } },
+];
+
+class RpcError extends Error {
+  constructor(readonly code: number, message: string) {
+    super(message);
+  }
 }
 
-interface MCPResponse {
-  jsonrpc: '2.0';
-  id: number | string;
-  result?: any;
-  error?: {
-    code: number;
-    message: string;
-    data?: any;
-  };
-}
-
-// Sample data - replace with actual data fetching
-async function getEntries(category?: string) {
-  return [
-    {
-      slug: 'sample-entry',
-      title: 'Sample Entry',
-      content: 'This is a sample entry.',
-      category: category || 'general',
-      date: new Date().toISOString()
+async function callTool(name: string | undefined, args: Record<string, unknown> = {}) {
+  switch (name) {
+    case "get_all":
+      return { roadmaps: await getAllRoadmaps() };
+    case "get_by_slug": {
+      const roadmap = typeof args.slug === "string" ? await getRoadmapBySlug(args.slug) : null;
+      if (!roadmap) throw new RpcError(-32602, `No roadmap with slug ${String(args.slug)}`);
+      return { roadmap };
     }
-  ];
+    case "search":
+      return { roadmaps: searchRoadmaps(await getAllRoadmaps(), typeof args.query === "string" ? args.query : "") };
+    default:
+      throw new RpcError(-32602, `Unknown tool: ${String(name)}`);
+  }
 }
 
-async function getEntryBySlug(slug: string) {
-  return {
-    slug,
-    title: 'Sample Entry',
-    content: 'This is a sample entry.',
-    date: new Date().toISOString()
-  };
-}
-
-async function searchEntries(query: string) {
-  return [
-    {
-      slug: 'sample-entry',
-      title: 'Sample Entry',
-      content: 'This is a sample entry.',
-      relevance: 0.95
-    }
-  ];
-}
-
-async function getCategories() {
-  return ['general', 'tutorial', 'reference'];
-}
-
-export async function POST(request: NextRequest) {
-  let requestId: number | string = 0;
-
+export async function POST(request: Request) {
+  let id: RpcRequest["id"] = null;
+  let body: RpcRequest;
   try {
-    const body: MCPRequest = await request.json();
-    requestId = body.id;
-    const { method, params, id } = body;
-
-    let result: any = {};
-
-    switch (method) {
-      case 'initialize':
-        result = {
-          protocolVersion: '2024-11-05',
-          capabilities: {
-            tools: {}
-          },
-          serverInfo: {
-            name: 'MCP Server',
-            version: '1.0.0'
-          }
-        };
+    body = (await request.json()) as RpcRequest;
+  } catch {
+    return NextResponse.json({ jsonrpc: "2.0", id, error: { code: -32700, message: "Parse error" } }, { status: 400 });
+  }
+  id = body.id ?? null;
+  try {
+    let result: unknown;
+    switch (body.method) {
+      case "initialize":
+        result = { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "Roadmaps", version: "1.0.0" } };
         break;
-
-      case 'tools/list':
-        result = {
-          tools: [
-            {
-              name: 'get_entries',
-              description: 'Get all entries',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  category: {
-                    type: 'string',
-                    description: 'Filter by category'
-                  }
-                }
-              }
-            },
-            {
-              name: 'get_entry_by_slug',
-              description: 'Get entry by slug',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  slug: {
-                    type: 'string',
-                    description: 'Entry slug'
-                  }
-                },
-                required: ['slug']
-              }
-            },
-            {
-              name: 'search_entries',
-              description: 'Search entries',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  query: {
-                    type: 'string',
-                    description: 'Search query'
-                  }
-                },
-                required: ['query']
-              }
-            },
-            {
-              name: 'get_categories',
-              description: 'Get all categories',
-              inputSchema: {
-                type: 'object',
-                properties: {}
-              }
-            }
-          ]
-        };
+      case "tools/list":
+        result = { tools: TOOLS };
         break;
-
-      case 'tools/call':
-        const toolName = params?.name;
-        const toolArgs = params?.arguments;
-
-        switch (toolName) {
-          case 'get_entries':
-            result = await getEntries(toolArgs?.category);
-            break;
-          case 'get_entry_by_slug':
-            result = await getEntryBySlug(toolArgs?.slug);
-            break;
-          case 'search_entries':
-            result = await searchEntries(toolArgs?.query);
-            break;
-          case 'get_categories':
-            result = await getCategories();
-            break;
-          default:
-            throw new Error(`Unknown tool: ${toolName}`);
-        }
+      case "tools/call":
+        result = await callTool(body.params?.name, body.params?.arguments);
         break;
-
       default:
-        throw new Error(`Unknown method: ${method}`);
+        throw new RpcError(-32601, `Unknown method: ${String(body.method)}`);
     }
-
-    const response: MCPResponse = {
-      jsonrpc: '2.0',
-      id,
-      result
-    };
-
-    return Response.json(response);
-
+    return NextResponse.json({ jsonrpc: "2.0", id, result });
   } catch (error) {
-    const response: MCPResponse = {
-      jsonrpc: '2.0',
-      id: requestId,
-      error: {
-        code: -32603,
-        message: error instanceof Error ? error.message : 'Internal error',
-        data: error instanceof Error ? error.stack : undefined
-      }
-    };
-
-    return Response.json(response, { status: 500 });
+    if (error instanceof RpcError) {
+      return NextResponse.json({ jsonrpc: "2.0", id, error: { code: error.code, message: error.message } }, { status: 400 });
+    }
+    return NextResponse.json({ jsonrpc: "2.0", id, error: { code: -32603, message: "Internal error" } }, { status: 500 });
   }
 }

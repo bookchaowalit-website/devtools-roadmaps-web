@@ -1,54 +1,44 @@
-# bookchaowalit-roadmaps-frontend — Product brief
+# Roadmaps — Product truth
 
-**Slug:** `bookchaowalit-website/bookchaowalit-roadmaps-frontend`  
-**Generated:** 2026-08-11 (bulk Book Dev closeout)  
-**Status:** starter / portfolio boundary
+> Inferred from the code and content (no user interview). Checked against the portfolio card claims review
+> (`portfolio-site-web/docs/audits/CARD-CLAIMS-REVIEW-2026-10.md`, row `roadmaps`) on 2026-10-23.
 
-## Purpose
+## What it is
 
-Portfolio repository under Book Dev. This brief records ownership and the
-current honest status so the nested tree is not an empty shell in the task
-system.
+A static reference site with three authored career learning roadmaps: Product Manager, Web Developer and Data
+Scientist. Each one has a category, difficulty, time estimate, prerequisites, a short description and four stages of
+items.
 
-## Runnable path
+## Who it is for
 
-See `README.md` for install and run instructions when present.
+A portfolio visitor who wants a calm, printable-feeling overview of a learning route.
 
-## Limits
+## What works today
 
-- Not claimed as production-ready unless README and tests prove it.
-- Mobile smoke / emulator acceptance is separate and toolchain-dependent.
+1. `/` and `/roadmaps` list every roadmap (sorted by marked progress) with its stage and prerequisite counts.
+2. `/roadmaps/<slug>` shows one roadmap: description, prerequisites and every stage in order. Pages are prebuilt;
+   an unknown slug returns 404.
+3. `/api/mcp` answers JSON-RPC with `get_all`, `get_by_slug` and `search` over the same content, echoes the request
+   id, and returns JSON-RPC errors for unknown tools, unknown methods and bad JSON.
+4. Front-end and server errors go to Sentry (errors only, personal data stripped) when `NEXT_PUBLIC_SENTRY_DSN` is set.
 
-## Current product truth
+## What does not work (and must not be claimed)
 
-- A static, authored learning-and-career roadmap library backed by local MDX.
-- The index exposes roadmap title, estimated time, category, difficulty,
-  progress metadata, stage count, and prerequisite count.
-- Detail routes present the authored roadmap stages and content; there is no
-  account, progress sync, live labor-market data, or personalized recommender.
+- No public product roadmap, status columns, feature voting or changelog integration (the card claimed these; the
+  2026-10 review flagged them).
+- The progress percentages are authored sample metadata, not anyone's tracked progress. No account, storage, sync or
+  editing in the browser.
 
-## Source README excerpt
+## Live URL and deploy state
 
-```
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+- Live: https://roadmaps.bookchaowalit.com (HTTP 200 on 2026-10-23).
+- The Vercel project `bookchaowalit-roadmaps-frontend` is deployed only by CLI. The last production deploy is the
+  CVE patch (2026-10-23 12:19, CLI, commit 7ec6537). Its Git link names the old repository
+  (`bookchaowalit/bookchaowalit-roadmaps-frontend`), so a push to `main` does not deploy: the L2 commits (real MCP
+  tools, rendered descriptions, Sentry) stay undeployed until the owner reconnects Vercel Git to this repository
+  (owner action D9). Until then the live `/api/mcp` still answers the old template's sample entry.
+- `NEXT_PUBLIC_SENTRY_DSN` is set on the Vercel project (Sentry project `devtools-roadmaps-web`, org `personal-yu0`).
 
-## Getting Started
+## Boundaries
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize an
-```
+- Read-only: content changes only through commits to `content/roadmaps/`.

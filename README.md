@@ -1,42 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roadmaps
 
-## Getting Started
+Three authored career learning roadmaps (Product Manager, Web Developer, Data Scientist), each a list of stages
+and items with prerequisites, a short description and a marked-progress figure. The content lives in
+`content/roadmaps/*.mdx` (YAML front matter plus a short Markdown body) and is prebuilt into static pages.
 
-First, run the development server:
+Live: https://roadmaps.bookchaowalit.com (deployed by Vercel CLI; it can lag `main`, see `PRODUCT.md`).
+
+## What it does not do
+
+- Not a product roadmap tool: no status columns, feature voting or changelog.
+- The progress percentages are authored sample metadata, not tracked personal progress. No account, storage or sync.
+
+## Run
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Checks
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test           # Vitest: content loading and search, Markdown renderer, pages, MCP route, Sentry scrubbing
+npm run lint
+npm run typecheck
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+CI (`.github/workflows/ci.yml`) runs the shared Node workflow (lint, typecheck, tests with a line-coverage gate,
+build) and the shared security scan on every push and PR to `main`.
 
-## Learn More
+## Code map
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Related
-
-- **Mobile App:** [bookchaowalit-roadmaps-mobile](https://github.com/bookchaowalit-mobile/bookchaowalit-roadmaps-mobile)
-- **Portfolio:** [bookchaowalit.com](https://bookchaowalit.com)
-
+- `lib/mdx.ts`: reads and validates `content/roadmaps/*.mdx` (`getAllRoadmaps`, `getRoadmapBySlug` with a safe-slug
+  check, `searchRoadmaps`).
+- `lib/markdown.tsx`: a small Markdown-to-React renderer for the roadmap body (paragraphs, headings, lists,
+  emphasis); HTML in the source is escaped, never injected.
+- `lib/roadmap-index.tsx`: the route list shared by `/` and `/roadmaps`.
+- `app/roadmaps/[slug]/page.tsx`: one prebuilt sheet per roadmap; any other slug is a 404.
+- `app/api/mcp/route.ts`: stateless JSON-RPC endpoint with `get_all`, `get_by_slug` and `search` over the same content.
+- `lib/sentry.ts` + `instrumentation*.ts`: error reporting to Sentry, errors only, personal data stripped; off when
+  `NEXT_PUBLIC_SENTRY_DSN` is unset.
+- `app/more-projects/page.tsx`: shared portfolio link page (copied per repository, not a package).

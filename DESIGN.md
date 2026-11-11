@@ -51,3 +51,21 @@ Reference / Rail is a field edition for authored learning roadmaps. A thin vermi
 - Do label progress as sample/reference metadata.
 - Don't imply account-based progress sync or live labor-market truth.
 - Don't collapse the route library into equal icon cards or a generic SaaS dashboard.
+
+
+---
+
+## Storybook
+
+Storybook 10 (`@storybook/nextjs-vite`) shows this design system with the app's real CSS, tokens and fonts.
+
+```bash
+npm run storybook        # http://localhost:6006
+npm run build-storybook  # static build in storybook-static/ (CI: .github/workflows/storybook.yml)
+```
+
+- **Foundations/Tokens** reads every CSS custom property the app defines at runtime, so it never drifts from the code.
+- **Design/DESIGN.md** renders this file.
+- **Components/**, **Sections/** and **Pages/** show the UI with mock data only (no network, analytics off).
+- Toolbar: locale, theme (light / dark), viewports 320 / 375 / 768 / 1440. The a11y panel runs axe (WCAG 2.2 AA).
+- Rule: a new shared component or page section ships with a story in `stories/`.

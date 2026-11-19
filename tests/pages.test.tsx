@@ -54,7 +54,7 @@ describe("index", () => {
     expect(out).not.toContain("&lt;b&gt;x");
     const levelOnly = renderToString(<IndexView roadmaps={await getAllRoadmaps()} level="advanced" query="zzzz" />);
     expect(levelOnly).toMatch(/at the (<!-- -->)?advanced(<!-- -->)? level/);
-    expect(levelOnly).toContain('class="rs-plain" href="/roadmaps?level=advanced">Clear');
+    expect(levelOnly).toContain('class="rs-plain" href="/roadmaps?level=advanced#rs-search-q">Clear');
     expect(renderToString(<IndexView roadmaps={[]} />)).toContain("No roadmaps yet");
   });
 });

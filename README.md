@@ -9,7 +9,8 @@ Live: https://roadmaps.bookchaowalit.com (deployed by Vercel CLI; it can lag `ma
 ## What it does not do
 
 - Not a product roadmap tool: no status columns, feature voting or changelog.
-- The progress percentages are authored sample metadata, not tracked personal progress. No account, storage or sync.
+- The progress percentages in the front matter are authored sample metadata: the pages no longer show them (they only
+  set the list order and stay in the MCP answers). No account, storage or sync.
 
 ## Run
 
@@ -41,4 +42,6 @@ build) and the shared security scan on every push and PR to `main`.
 - `app/api/mcp/route.ts`: stateless JSON-RPC endpoint with `get_all`, `get_by_slug` and `search` over the same content.
 - `lib/sentry.ts` + `instrumentation*.ts`: error reporting to Sentry, errors only, personal data stripped; off when
   `NEXT_PUBLIC_SENTRY_DSN` is unset.
-- `app/more-projects/page.tsx`: shared portfolio link page (copied per repository, not a package).
+- `app/reader-shell.css`, `components/reader-shell.tsx`, `tests/reader-shell.test.tsx`: the shared Reader shell, copied
+  byte for byte from content-techblog-web (see `READER.md`); `components/roadmap-views.tsx` holds the three page views.
+  `/more-projects` is a permanent redirect to https://bookchaowalit.com/.

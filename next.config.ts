@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
-  // /api/mcp reads content/roadmaps at request time, so ship those files with the function.
-  outputFileTracingIncludes: { "/api/mcp": ["./content/**"] },
+  // The old portfolio link page now lives on the main site.
+  async redirects() {
+    return [{ source: "/more-projects", destination: "https://bookchaowalit.com/", permanent: true }];
+  },
 };
 
 export default nextConfig;

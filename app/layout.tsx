@@ -1,22 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
+import { SITE } from "@/components/roadmap-views";
 import "./globals.css";
 
+// The font variable sits on <html>: the Reader shell tokens live on :root and read it from there.
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+const description = "Authored career learning roadmaps: prerequisites and every stage in order.";
 
 export const metadata: Metadata = {
-  title: "Reference / Rail | Bookchaowalit",
-  description: "Authored learning and career roadmaps.",
-  metadataBase: new URL("https://bookchaowalit.com"),
+  title: { default: "Roadmaps | Bookchaowalit", template: "%s | Roadmaps" },
+  description,
+  metadataBase: new URL(SITE),
+  alternates: { canonical: "/" },
   authors: [{ name: "Bookchaowalit", url: "https://bookchaowalit.com" }],
+  openGraph: { type: "website", title: "Roadmaps | Bookchaowalit", description, siteName: "Bookchaowalit" },
   robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={geistSans.variable + " " + geistMono.variable}>{children}</body>
+    <html lang="en" className={geistSans.variable}>
+      <body>{children}</body>
     </html>
   );
 }

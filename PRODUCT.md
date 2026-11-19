@@ -15,7 +15,8 @@ A portfolio visitor who wants a calm, printable-feeling overview of a learning r
 
 ## What works today
 
-1. `/` and `/roadmaps` list every roadmap (sorted by marked progress) with its stage and prerequisite counts.
+1. `/` lists every roadmap as cards; `/roadmaps` adds a search over titles, stages and prerequisites (`?q=`) and level
+   chips (`?level=`). Both keep the authored order (sorted by the sample progress figure, which is not shown).
 2. `/roadmaps/<slug>` shows one roadmap: description, prerequisites and every stage in order. Pages are prebuilt;
    an unknown slug returns 404.
 3. `/api/mcp` answers JSON-RPC with `get_all`, `get_by_slug` and `search` over the same content, echoes the request

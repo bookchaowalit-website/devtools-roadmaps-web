@@ -1,3 +1,10 @@
+# Roadmaps — Design
+
+Since 2026-11-19 the site uses the shared **Reader shell** (`READER.md`): Geist, light and dark, cards on the home
+page, a searchable index with level chips, and article pages with prerequisites, stages in order and previous/next.
+The sample progress figure is no longer shown anywhere. The notes below describe the earlier "Reference / Rail" look
+and are kept for history.
+
 # Reference / Rail — Design System
 
 ## Overview

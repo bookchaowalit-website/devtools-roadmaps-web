@@ -43,7 +43,8 @@ function parseRoadmap(slug: string, source: string): Roadmap {
         }))
       : [],
     slug,
-    content: content.trim(),
+    // The "*Progress: N% complete*" line is sample metadata, not anyone's progress: the page never shows it.
+    content: content.replace(/^\*Progress:[^*\n]*\*\s*$/gm, "").trim(),
   };
 }
 

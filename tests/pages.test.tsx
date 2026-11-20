@@ -50,7 +50,7 @@ describe("index", () => {
   it("ignores a level the content does not have and shows a way back when nothing matches", async () => {
     const out = await index({ q: ["zzzz"], level: "<b>x</b>" });
     expect(out).toContain("No roadmap matches");
-    expect(out).toContain("Show all roadmaps");
+    expect(out).toContain('href="/roadmaps#rs-search-q">Show all roadmaps');
     expect(out).not.toContain("&lt;b&gt;x");
     const levelOnly = renderToString(<IndexView roadmaps={await getAllRoadmaps()} level="advanced" query="zzzz" />);
     expect(levelOnly).toMatch(/at the (<!-- -->)?advanced(<!-- -->)? level/);

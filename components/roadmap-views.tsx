@@ -116,7 +116,12 @@ export function IndexView({ roadmaps, query = "", level = "" }: { roadmaps: Road
       {shown.length ? (
         <EntryList entries={shown.map(toEntry)} />
       ) : roadmaps.length ? (
-        <EmptyState title="No roadmap matches" action={<Link className="rs-plain" href="/roadmaps">Show all roadmaps</Link>}>
+        <EmptyState title="No roadmap matches" action={
+          // A native link reloads the page, so the uncontrolled search field resets and focus lands in it
+          // (READER.md: a "clear" link that removes itself ends in #rs-search-q).
+          // eslint-disable-next-line @next/next/no-html-link-for-pages -- the full reload is the point
+          <a className="rs-plain" href="/roadmaps#rs-search-q">Show all roadmaps</a>
+        }>
           Nothing matches {query ? <>“{query}”</> : "this filter"}{activeLevel ? <> at the {label(activeLevel).toLowerCase()} level</> : null}. Try a shorter word or another level.
         </EmptyState>
       ) : (

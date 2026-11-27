@@ -8,12 +8,14 @@ Last reviewed: 2026-11-28 · commit `d62a22b`
 
 ```mermaid
 flowchart LR
-  AUTHOR["owner commits content/roadmaps/*.mdx"] --> MAIN["main branch + CI (lint, typecheck, tests, build, security scan)"]
-  MAIN --> DEPLOY["Vercel CLI deploy [ต้องยืนยัน: Git link ชี้ repo เก่า, push ไม่ deploy]"]
-  VISITOR["ผู้เยี่ยมชม"] --> HOME["/ : การ์ดทุก roadmap"]
-  VISITOR --> LIST["/roadmaps?q=&level= : ค้นหา + chip ระดับ"]
-  VISITOR --> DETAIL["/roadmaps/slug : prebuilt, slug อื่น = 404"]
-  HOME --> LOAD["lib/mdx.ts อ่านและ validate front matter"]
+  AUTHOR["owner commits content/roadmaps/*.mdx"] --> MAIN["push main"]
+  MAIN --> CI["GitHub Actions CI (lint, typecheck, tests, build, security scan) ไม่ได้สั่ง deploy"]
+  MAIN -.->|"push ไม่ deploy (Git link ชี้ repo เก่า)"| NODEPLOY["ไม่มี deploy อัตโนมัติ"]
+  OWNERCLI["owner สั่ง Vercel CLI deploy เอง [ต้องยืนยัน]"] --> PROD["production roadmaps.bookchaowalit.com"]
+  VISITOR["ผู้เยี่ยมชม"] --> HOME["/ : การ์ดทุก roadmap (prerender ตอน build)"]
+  VISITOR --> LIST["/roadmaps?q=&level= : ค้นหา + chip ระดับ (อ่านไฟล์ทุก request)"]
+  VISITOR --> DETAIL["/roadmaps/slug : prebuilt ตอน build, slug อื่น = 404"]
+  HOME --> LOAD["lib/mdx.ts อ่าน front matter แล้วแปลงชนิด/เติมค่าเริ่มต้น (ไม่ reject ข้อมูลผิด schema)"]
   LIST --> LOAD
   DETAIL --> LOAD
   LOAD --> FILES[("content/roadmaps/*.mdx")]
@@ -21,7 +23,8 @@ flowchart LR
   MCP -->|"slug ผิดรูปแบบหรือไม่มี, tool/method ไม่รู้จัก"| RPCERR["JSON-RPC error 400"]
   MCP -->|"JSON เสีย"| PARSE["Parse error 400"]
   MCP --> LOAD
-  LOAD -->|"ข้อผิดพลาดอื่น"| SENTRY["Sentry (errors only, scrub PII) ถ้ามี DSN"]
+  MCP -->|"อ่านไฟล์ล้มเหลว"| E500["JSON-RPC -32603, HTTP 500 (จับเอง ไม่ส่งไป Sentry)"]
+  LOAD -->|"error ของหน้า (ไม่ใช่ MCP)"| SENTRY["Sentry ถ้ามี DSN: ตัด request/user/breadcrumbs/extra, ตัด query/hash ในข้อความ"]
   DETAIL -->|"slug ไม่มี"| NF["404 notFound"]
 ```
 
@@ -33,7 +36,8 @@ Sources: `content/roadmaps/*.mdx`, `lib/mdx.ts`, `app/page.tsx`, `app/roadmaps/p
 
 ```mermaid
 flowchart LR
-  AUTHOR["owner commits content/roadmaps/*.mdx"] --> MAIN["main branch + CI"]
+  AUTHOR["owner commits content/roadmaps/*.mdx"] --> MAIN["push main"]
+  MAIN --> CI2["CI (แยกเส้นทาง)"]
   MAIN --> DEPLOY["Vercel Git deploy จาก repo นี้ (push = deploy)"]
   DEPLOY --> SITE["roadmaps.bookchaowalit.com + /api/mcp รุ่นล่าสุด"]
 ```
